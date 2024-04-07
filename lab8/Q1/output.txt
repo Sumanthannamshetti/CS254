@@ -1,0 +1,2 @@
+The max value is : 360
+The items included in the collection are : 1 2 4 
