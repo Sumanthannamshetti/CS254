@@ -1,35 +1,66 @@
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
-const int N = 1e3 + 10;
-int dp[N][N];
-vector<pair<int,int>>a(N);
-int func(int n,int i,int t){
-    if(i>=n)return 0;
-    if(dp[i][t]!=-1)return dp[i][t];
-    int ans=func(n,i+1,t);
-    if(t<a[i].first){
-        ans=max(ans,func(n,i+1,t+1)+a[i].second);
-    }
-    return dp[i][t]=ans;
+
+int graph[18][18][2];
+long long dp[1 << 18][18][2];
+
+long long minCost(int n, int m, int mask, int prev, int col)
+{
+	if (mask == ((1 << n) - 1)) {
+		return 0;
+	}
+	if (dp[mask][prev][col == 1] != 0) {
+		return dp[mask][prev][col == 1];
+	}
+
+	long long ans = 1e9;
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < 2; j++) {
+			if (graph[prev][i][j] && !(mask & (1 << i)) && (j != col)) {
+				long long z = graph[prev][i][j] + minCost(n,m,mask|(1<<i),i,j);
+				ans = min(z, ans);
+			}
+		}
+	}
+
+	return dp[mask][prev][col == 1] = ans;
 }
-bool compareFirst(const pair<int, int> &c, const pair<int, int> &b) {
-    return c.first < b.first;
+
+void makeGraph(vector<pair<pair<int,int>, pair<int,char>>>& vp,int m){
+	for (int i = 0; i < m; i++) {
+		int a = vp[i].first.first - 1;
+		int b = vp[i].first.second - 1;
+		int cost = vp[i].second.first;
+		char color = vp[i].second.second;
+		graph[a][b][color == 'W'] = cost;
+		graph[b][a][color == 'W'] = cost;
+	}
 }
-int main(){
-    memset(dp, -1, sizeof(dp));
+
+int getCost(int n,int m){
+	long long ans = 1e9;
+	for (int i = 0; i < n; i++) {
+		ans = min(ans, minCost(n, m, 1 << i, i, 2));
+	}
+	return ans != 1e9 ? ans : -1;
+}
+
+int main()
+{
     freopen("input.txt","r",stdin);
     freopen("output.txt","w",stdout);
-    int n;
-    cin>>n;
-    for(int i=0;i<n;i++){cin>>a[i].first;}
-    for(int i=0;i<n;i++){cin>>a[i].second;}
-    sort(a.begin(),a.begin()+n,compareFirst);
-    cout<<"The max value : "<<func(n,0,0)<<endl<<"The id's of the jobs are : ";
-    vector<int>sel;int j=0;
-    for(int i=0;i<n;i++){
-        if(dp[i][j]!=dp[i+1][j]){
-            j++;
-            sel.push_back(i+1);
-        }}
-    for(auto &a:sel)cout<<a<<" ";
+    int n,m;
+    cin>>n>>m;
+    vector<pair<pair<int,int>,pair<int,char>>> v;
+    for(int i=0;i<m;i++){
+        int a,b,w;
+        char c;
+        cin>>a>>b>>w>>c;
+        v.push_back({{a,b},{w,c}});
+    }
+
+	makeGraph(v,m);
+	cout << getCost(n,m) << '\n';
+	return 0;
 }
