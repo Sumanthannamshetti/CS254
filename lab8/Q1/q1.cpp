@@ -1,33 +1,56 @@
 #include<bits/stdc++.h>
 using namespace std;
-const int N=1e3+5;
-int dp[N][N];
-vector<int>wt(N),val(N);
-int func(int i,int w,int lim){
-    if(i<0) return 0;
-    if(dp[i][w]!=-1) return dp[i][w];
-    int ans=func(i-1,w,lim);
-    if(wt[i]+w<=lim){
-        ans=max(ans,func(i-1,w+wt[i],lim)+val[i]);
+
+void uni(map<int,int>&size, map<int,int>&par, map<int,vector<int>>&mp,int a,int b){
+    if(size[par[a]]>size[par[b]]){
+        int c=par[b];
+        size[par[a]]+=size[par[b]];
+        for(auto &x:mp[c]){
+            par[x]=a;
+            mp[a].push_back(x);
+        }
+    }else{
+        int c=par[a];
+        size[par[b]]+=size[par[a]];
+        for(auto &x:mp[c]){
+            par[x]=par[b];
+            mp[par[b]].push_back(x);
+        }        
     }
-    return dp[i][w]=ans;
 }
+
+void kruskal(vector<pair<int,pair<int,int>>> v,int n,int m){
+    map<int,int> size,par;
+    map<int,vector<int>> mp;
+    for(int i=1;i<=n;i++){
+        size[i]=1;
+        par[i]=i;
+        mp[i].push_back(i);
+    }
+    sort(v.rbegin(),v.rend());
+    for(int i=0;i<m;i++){
+        int a=v[i].second.first;
+        int b=v[i].second.second;
+        if(par[a]!=par[b]){
+            cout<<a<<" "<<b<<endl;
+            uni(size,par,mp,a,b);
+        }
+    }
+}
+
 int main(){
-    memset(dp,-1,sizeof(dp));
     freopen("input.txt","r",stdin);
     freopen("output.txt","w",stdout);
-    int n,lim;
-    cin>>n>>lim;
-    for(int i=0;i<n;i++)cin>>val[i];
-    for(int i=0;i<n;i++)cin>>wt[i];
-    cout<<"The max value is : "<<func(n-1,0,lim)<<endl<<"The items included in the collection are : ";
-    int j=0;
-    vector<int>sel;
-    for(int i=n-1;i>0;i--){
-        if(dp[i][j]!=dp[i-1][j]){
-            j+=wt[i];
-            sel.push_back(i+1);
-        }}
-    if(dp[0][j]!=0)sel.push_back(1);reverse(sel.rbegin(),sel.rend());
-    for(auto &a:sel)cout<<a<<" ";
+    int n,m;
+    cin>>n>>m;
+    vector<pair<int,pair<int,int>>> v;
+
+    for(int i=0;i<m;i++){
+        int a,b,w;
+        cin>>a>>b>>w;
+        pair<int,int> p={a,b};
+        v.push_back({w,p});
+    }
+    kruskal(v,n,m);
+    return 0;
 }
